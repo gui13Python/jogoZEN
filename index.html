@@ -25,6 +25,9 @@
 
     canvas {
       display: block;
+      touch-action: none;
+      width: 100vw;
+      height: 100vh;
     }
 
     #motivacao, #pontuacao {
@@ -33,7 +36,7 @@
       transform: translateX(-50%);
       padding: 10px 20px;
       border-radius: 20px;
-      font-size: 1.2em;
+      font-size: 1.4em;
       color: var(--text-light);
       background: var(--box-bg-light);
       box-shadow: 0 0 10px rgba(0,0,0,0.2);
@@ -41,8 +44,13 @@
       text-align: center;
     }
 
-    #motivacao { top: 20px; }
-    #pontuacao { top: 70px; }
+    #motivacao {
+      top: 20px;
+    }
+
+    #pontuacao {
+      top: 70px;
+    }
 
     #modoToggle {
       position: absolute;
@@ -52,36 +60,10 @@
       background-color: #ffffff88;
       border: none;
       border-radius: 15px;
-      padding: 8px 20px;
-      font-size: 1em;
+      padding: 12px 24px;
+      font-size: 1.1em;
       cursor: pointer;
       transition: background 0.3s;
-    }
-
-    #audioToggle {
-      position: absolute;
-      top: 200px;
-      left: 50%;
-      transform: translateX(-50%);
-      background-color: transparent;
-      border: none;
-      cursor: pointer;
-      font-size: 1.8em;
-      color: #333;
-    }
-
-    #configBox {
-      position: absolute;
-      top: 250px;
-      left: 50%;
-      transform: translateX(-50%);
-      background: var(--box-bg-light);
-      color: var(--text-light);
-      padding: 10px;
-      border-radius: 15px;
-      display: none;
-      flex-direction: column;
-      align-items: center;
     }
 
     .dark-mode {
@@ -89,8 +71,7 @@
     }
 
     .dark-mode #motivacao,
-    .dark-mode #pontuacao,
-    .dark-mode #configBox {
+    .dark-mode #pontuacao {
       background: var(--box-bg-dark);
       color: var(--text-dark);
     }
@@ -99,36 +80,27 @@
       background-color: #333;
       color: #f0f0f0;
     }
-
-    .dark-mode #audioToggle {
-      color: #f0f0f0;
-    }
   </style>
 </head>
 <body>
   <div id="motivacao">Toque nas bolhas para estourar!</div>
   <div id="pontuacao">Pontuação: 0 | Erros: 0 | Nível: 1</div>
   <button id="modoToggle">Ativar Modo Escuro</button>
-  <button id="audioToggle" title="Configurações de áudio">🎵</button>
-  <div id="configBox">
-    <label>Volume da Música
-      <input type="range" id="volumeSlider" min="0" max="1" step="0.01">
-    </label>
-    <label>
-      <input type="checkbox" id="somEfeitoToggle">
-      Efeitos sonoros
-    </label>
-  </div>
   <canvas id="gameCanvas"></canvas>
   <audio id="plop" src="https://cdn.pixabay.com/audio/2022/03/15/audio_640b27eb75.mp3"></audio>
-  <audio id="musicaFundo" loop autoplay>
+  <audio id="musicaFundo" loop>
     <source src="https://cdn.pixabay.com/download/audio/2022/10/20/audio_596c3274b6.mp3?filename=soft-ambient-112214.mp3" type="audio/mpeg">
   </audio>
+
   <script>
     const canvas = document.getElementById("gameCanvas");
     const ctx = canvas.getContext("2d");
-    canvas.width = window.innerWidth;
-    canvas.height = window.innerHeight;
+
+    function ajustarCanvas() {
+      canvas.width = canvas.offsetWidth;
+      canvas.height = canvas.offsetHeight;
+    }
+    ajustarCanvas();
 
     const frases = [
       "Você está indo muito bem!",
@@ -137,7 +109,10 @@
       "Respire. Sinta. Viva.",
       "Você merece esse momento de paz.",
       "Você está ficando cada vez melhor!",
-      "O foco é uma jornada. Continue!"
+      "O foco é uma jornada. Continue!",
+      "Persistência cria resultados incríveis.",
+      "A constância é o segredo do sucesso.",
+      "Um passo de cada vez, você chega lá."
     ];
 
     let bolhas = [];
@@ -145,15 +120,7 @@
     let perdidas = 0;
     let nivel = 1;
     let velocidadeBonus = 0;
-
-    const plop = document.getElementById("plop");
-    const musicaFundo = document.getElementById("musicaFundo");
-    const volumeSlider = document.getElementById("volumeSlider");
-    const somEfeitoToggle = document.getElementById("somEfeitoToggle");
-
-    musicaFundo.volume = localStorage.getItem("volumeMusica") || 0.2;
-    volumeSlider.value = musicaFundo.volume;
-    somEfeitoToggle.checked = localStorage.getItem("efeitoSom") !== "false";
+    let efeitosEstouro = [];
 
     function atualizarPontuacao() {
       document.getElementById("pontuacao").textContent = `Pontuação: ${estouroTotal} | Erros: ${perdidas} | Nível: ${nivel}`;
@@ -166,6 +133,23 @@
       const cor = `hsl(${Math.random() * 360}, 70%, 80%)`;
       const velocidade = Math.random() * 1.5 + 0.5 + velocidadeBonus;
       bolhas.push({ x, y, raio, cor, velocidade });
+    }
+
+    function desenharEstouro() {
+      for (let i = 0; i < efeitosEstouro.length; i++) {
+        const efeito = efeitosEstouro[i];
+        ctx.beginPath();
+        ctx.arc(efeito.x, efeito.y, efeito.raio, 0, Math.PI * 2);
+        ctx.strokeStyle = `rgba(255, 255, 255, ${efeito.alpha})`;
+        ctx.lineWidth = 3;
+        ctx.stroke();
+        efeito.raio += 2;
+        efeito.alpha -= 0.05;
+        if (efeito.alpha <= 0) {
+          efeitosEstouro.splice(i, 1);
+          i--;
+        }
+      }
     }
 
     function desenharBolhas() {
@@ -183,9 +167,18 @@
           i--;
           perdidas++;
           atualizarPontuacao();
-          if (perdidas >= 5) reiniciarJogo("Está tudo bem... Respire fundo e tente de novo.");
+
+          if (perdidas >= 5) {
+            mostrarFrase("Está tudo bem... Respire fundo e tente de novo.");
+            estouroTotal = 0;
+            perdidas = 0;
+            nivel = 1;
+            velocidadeBonus = 0;
+            atualizarPontuacao();
+          }
         }
       }
+      desenharEstouro();
     }
 
     function estourar(x, y) {
@@ -197,7 +190,9 @@
           estouroTotal++;
           perdidas = 0;
           atualizarPontuacao();
-          if (somEfeitoToggle.checked) plop.play();
+          document.getElementById("plop").play();
+          efeitosEstouro.push({ x, y, raio: b.raio, alpha: 1 });
+
           if (estouroTotal % 10 === 0) {
             mostrarFrase(frases[Math.floor(Math.random() * frases.length)]);
             nivel++;
@@ -207,18 +202,17 @@
           return;
         }
       }
+
       perdidas++;
       atualizarPontuacao();
-      if (perdidas >= 5) reiniciarJogo("Lembre-se: persistência é a chave. Você consegue!");
-    }
-
-    function reiniciarJogo(msg) {
-      mostrarFrase(msg);
-      estouroTotal = 0;
-      perdidas = 0;
-      nivel = 1;
-      velocidadeBonus = 0;
-      atualizarPontuacao();
+      if (perdidas >= 5) {
+        mostrarFrase("Lembre-se: persistência é a chave. Você consegue!");
+        estouroTotal = 0;
+        perdidas = 0;
+        nivel = 1;
+        velocidadeBonus = 0;
+        atualizarPontuacao();
+      }
     }
 
     function mostrarFrase(texto) {
@@ -230,8 +224,23 @@
       }, 4000);
     }
 
+    function iniciarSomDeFundo() {
+      const musica = document.getElementById("musicaFundo");
+      if (musica.paused) {
+        musica.volume = 0.2;
+        musica.play().catch(() => {});
+      }
+    }
+
     canvas.addEventListener("click", (e) => {
+      iniciarSomDeFundo();
       estourar(e.clientX, e.clientY);
+    });
+
+    canvas.addEventListener("touchstart", (e) => {
+      iniciarSomDeFundo();
+      const touch = e.touches[0];
+      estourar(touch.clientX, touch.clientY);
     });
 
     function loop() {
@@ -243,30 +252,13 @@
     loop();
     mostrarFrase("Toque nas bolhas para estourar!");
 
-    document.getElementById("modoToggle").addEventListener("click", () => {
+    const toggle = document.getElementById("modoToggle");
+    toggle.addEventListener("click", () => {
       document.body.classList.toggle("dark-mode");
-      const toggle = document.getElementById("modoToggle");
       toggle.textContent = document.body.classList.contains("dark-mode") ? "Desativar Modo Escuro" : "Ativar Modo Escuro";
     });
 
-    document.getElementById("audioToggle").addEventListener("click", () => {
-      const box = document.getElementById("configBox");
-      box.style.display = box.style.display === "flex" ? "none" : "flex";
-    });
-
-    volumeSlider.addEventListener("input", () => {
-      musicaFundo.volume = volumeSlider.value;
-      localStorage.setItem("volumeMusica", volumeSlider.value);
-    });
-
-    somEfeitoToggle.addEventListener("change", () => {
-      localStorage.setItem("efeitoSom", somEfeitoToggle.checked);
-    });
-
-    window.addEventListener("resize", () => {
-      canvas.width = window.innerWidth;
-      canvas.height = window.innerHeight;
-    });
+    window.addEventListener("resize", ajustarCanvas);
   </script>
 </body>
 </html>
