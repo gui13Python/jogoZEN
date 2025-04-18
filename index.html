@@ -45,16 +45,24 @@
     }
 
     #motivacao {
-      top: 20px;
+      top: 25%;
+      display: flex;
+      margin: 5%;
+      justify-content: center;
+      align-items: center;
+      opacity: initial;
+      fill-opacity: var(--text-light);
+      display: none;
     }
 
     #pontuacao {
       top: 70px;
+      
     }
 
     #modoToggle {
       position: absolute;
-      top: 130px;
+      top: 5px;
       left: 50%;
       transform: translateX(-50%);
       background-color: #ffffff88;
@@ -64,6 +72,10 @@
       font-size: 1.1em;
       cursor: pointer;
       transition: background 0.3s;
+      padding: 10px;
+      opacity: initial;
+      opacity: 0.5;
+      
     }
 
     .dark-mode {
@@ -80,11 +92,12 @@
       background-color: #333;
       color: #f0f0f0;
     }
+
   </style>
 </head>
 <body>
   <div id="motivacao">Toque nas bolhas para estourar!</div>
-  <div id="pontuacao">Pontuação: 0 | Erros: 0 | Nível: 1</div>
+  <div id="pontuacao">Pontuação: 0 | <span>Erros:</span>  0 | Nível: 1</div>
   <button id="modoToggle">Ativar Modo Escuro</button>
   <canvas id="gameCanvas"></canvas>
   <audio id="plop" src="https://cdn.pixabay.com/audio/2022/03/15/audio_640b27eb75.mp3"></audio>
@@ -220,7 +233,7 @@
       div.textContent = texto;
       div.style.opacity = 1;
       setTimeout(() => {
-        div.style.opacity = 0.3;
+        div.style.opacity = 0.4;
       }, 4000);
     }
 
