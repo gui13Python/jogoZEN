@@ -1,0 +1,9 @@
+{
+  "name": "Zen Bolhas",
+  "short_name": "BolhasZen",
+  "start_url": "index.html",
+  "display": "standalone",
+  "background_color": "#a0e0ff",
+  "theme_color": "#a0e0ff",
+  "icons": []
+}
