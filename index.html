@@ -1,21 +1,99 @@
-
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>🌸Arte de Manos🌸  Studio</title>
-  <link rel="stylesheet" href="style.css" />
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Zen Bolhas</title>
   <link rel="manifest" href="manifest.json">
-  <meta name="theme-color" content="#f28cb1">
-  <link rel="icon" href="./logo.png" type="image/png">
-  <script>
-    if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.register('sw.js').then(() => {
-        console.log("Service Worker registrado!");
-      });
+  <style>
+    :root {
+      --bg-light: linear-gradient(to top, #a0e0ff, #ffffff);
+      --bg-dark: linear-gradient(to top, #000428, #004e92);
+      --text-light: #333;
+      --text-dark: #f0f0f0;
+      --box-bg-light: rgba(255,255,255,0.8);
+      --box-bg-dark: rgba(0,0,0,0.6);
     }
-  </script>
+
+    body {
+      margin: 0;
+      overflow: hidden;
+      background: var(--bg-light);
+      font-family: 'Segoe UI', sans-serif;
+      transition: background 0.5s ease;
+    }
+
+    canvas {
+      display: block;
+      touch-action: none;
+      width: 100vw;
+      height: 100vh;
+    }
+
+    #motivacao, #pontuacao {
+      position: absolute;
+      left: 50%;
+      transform: translateX(-50%);
+      padding: 10px 20px;
+      border-radius: 20px;
+      font-size: 1.4em;
+      color: var(--text-light);
+      background: var(--box-bg-light);
+      box-shadow: 0 0 10px rgba(0,0,0,0.2);
+      transition: all 0.5s ease;
+      text-align: center;
+    }
+
+    #motivacao {
+      top: 25%;
+      display: flex;
+      margin: 5%;
+      justify-content: center;
+      align-items: center;
+      opacity: initial;
+      fill-opacity: var(--text-light);
+      display: none;
+    }
+
+    #pontuacao {
+      top: 70px;
+      
+    }
+
+    #modoToggle {
+      position: absolute;
+      top: 5px;
+      left: 50%;
+      transform: translateX(-50%);
+      background-color: #ffffff88;
+      border: none;
+      border-radius: 15px;
+      padding: 12px 24px;
+      font-size: 1.1em;
+      cursor: pointer;
+      transition: background 0.3s;
+      padding: 10px;
+      opacity: initial;
+      opacity: 0.5;
+      
+    }
+
+    .dark-mode {
+      background: var(--bg-dark);
+    }
+
+    .dark-mode #motivacao,
+    .dark-mode #pontuacao {
+      background: var(--box-bg-dark);
+      color: var(--text-dark);
+    }
+
+    .dark-mode #modoToggle {
+      background-color: #333;
+      color: #f0f0f0;
+    }
+
+  </style>
 </head>
 <!-- Google tag (gtag.js) -->
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-BL1105QBJY"></script>
@@ -27,35 +105,182 @@
   gtag('config', 'G-BL1105QBJY');
 </script>
 <body>
-  <header>
-    <h1>🌸Arte de Manos🌸  Studio  </h1>
-    <p>"La belleza empieza en tus manos."
-      
-    </p>
-    <p id="desenho"> 
-      💅 Uñas | Diseño | Cuidado 💅</p>
-    <a class="btn-whatsapp" href="https://wa.me/55SEUNUMERO?text=Olá,%20gostaria%20de%20agendar%20um%20horário!" target="_blank">Agendar: <span>watsapp</span> </a>
-  </header>
-  <section class="servicos">
-    <h2>Serviços</h2>
-    <ul>
-      <li>Manicura tradicional</li>
-      <li>Pedicura</li>
-      <li>Esmaltado simple</li>
-      <li>Francesa</li>
-      
-    </ul>
-  </section>
-  <section class="galeria">
-    <h2>Galeria</h2>
-    <div class="fotos">
-      <img src="https://institutouniversal.vteximg.com.br/arquivos/ids/158825-292-292/images-unhas-decoradas.jpg?v=638718496461070000" alt="Unhas feitas" />
-      <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTlaEX9DECTjX7eMEJJvrSeHp60hGucvvOLrg&s" alt="Pés cuidados" />
-      <img src="https://i.pinimg.com/originals/a3/7b/26/a37b26f08aa6a469583c51b832bd0e9b.jpg" alt="Francesinha" />
-    </div>
-  </section>
-  <footer>
-    <p>&copy; 2022 🌸Arte de Manos🌸  Studio  - Todos os direitos reservados</p>
-  </footer>
+  <div id="motivacao">Toque nas bolhas para estourar!</div>
+  <div id="pontuacao">Pontuação: 0 | <span>Erros:</span>  0 | Nível: 1</div>
+  <button id="modoToggle">Ativar Modo Escuro</button>
+  <canvas id="gameCanvas"></canvas>
+  <audio id="plop" src="./audio/lofi-295209.mp3"></audio>
+  <audio id="musicaFundo" loop>
+    <source src="./audio/lofi-295209.mp3" type="audio/mpeg">
+  </audio>
+
+  <script>
+    const canvas = document.getElementById("gameCanvas");
+    const ctx = canvas.getContext("2d");
+
+    function ajustarCanvas() {
+      canvas.width = canvas.offsetWidth;
+      canvas.height = canvas.offsetHeight;
+    }
+    ajustarCanvas();
+
+    const frases = [
+      "Você está indo muito bem!",
+      "Continue no seu ritmo.",
+      "Tudo bem recomeçar.",
+      "Respire. Sinta. Viva.",
+      "Você merece esse momento de paz.",
+      "Você está ficando cada vez melhor!",
+      "O foco é uma jornada. Continue!",
+      "Persistência cria resultados incríveis.",
+      "A constância é o segredo do sucesso.",
+      "Um passo de cada vez, você chega lá."
+    ];
+
+    let bolhas = [];
+    let estouroTotal = 0;
+    let perdidas = 0;
+    let nivel = 1;
+    let velocidadeBonus = 0;
+    let efeitosEstouro = [];
+
+    function atualizarPontuacao() {
+      document.getElementById("pontuacao").textContent = `Pontuação: ${estouroTotal} | Erros: ${perdidas} | Nível: ${nivel}`;
+    }
+
+    function criarBolha() {
+      const raio = Math.random() * 20 + 20;
+      const x = Math.random() * (canvas.width - raio * 2) + raio;
+      const y = canvas.height + raio;
+      const cor = `hsl(${Math.random() * 360}, 70%, 80%)`;
+      const velocidade = Math.random() * 1.5 + 0.5 + velocidadeBonus;
+      bolhas.push({ x, y, raio, cor, velocidade });
+    }
+
+    function desenharEstouro() {
+      for (let i = 0; i < efeitosEstouro.length; i++) {
+        const efeito = efeitosEstouro[i];
+        ctx.beginPath();
+        ctx.arc(efeito.x, efeito.y, efeito.raio, 0, Math.PI * 2);
+        ctx.strokeStyle = `rgba(255, 255, 255, ${efeito.alpha})`;
+        ctx.lineWidth = 3;
+        ctx.stroke();
+        efeito.raio += 2;
+        efeito.alpha -= 0.05;
+        if (efeito.alpha <= 0) {
+          efeitosEstouro.splice(i, 1);
+          i--;
+        }
+      }
+    }
+
+    function desenharBolhas() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      for (let i = 0; i < bolhas.length; i++) {
+        const b = bolhas[i];
+        ctx.beginPath();
+        ctx.arc(b.x, b.y, b.raio, 0, Math.PI * 2);
+        ctx.fillStyle = b.cor;
+        ctx.fill();
+        b.y -= b.velocidade;
+
+        if (b.y + b.raio < 0) {
+          bolhas.splice(i, 1);
+          i--;
+          perdidas++;
+          atualizarPontuacao();
+
+          if (perdidas >= 5) {
+            mostrarFrase("Está tudo bem... Respire fundo e tente de novo.");
+            estouroTotal = 0;
+            perdidas = 0;
+            nivel = 1;
+            velocidadeBonus = 0;
+            atualizarPontuacao();
+          }
+        }
+      }
+      desenharEstouro();
+    }
+
+    function estourar(x, y) {
+      for (let i = 0; i < bolhas.length; i++) {
+        const b = bolhas[i];
+        const dist = Math.hypot(b.x - x, b.y - y);
+        if (dist < b.raio) {
+          bolhas.splice(i, 1);
+          estouroTotal++;
+          perdidas = 0;
+          atualizarPontuacao();
+          document.getElementById("plop").play();
+          efeitosEstouro.push({ x, y, raio: b.raio, alpha: 1 });
+
+          if (estouroTotal % 10 === 0) {
+            mostrarFrase(frases[Math.floor(Math.random() * frases.length)]);
+            nivel++;
+            velocidadeBonus += 0.2;
+            atualizarPontuacao();
+          }
+          return;
+        }
+      }
+
+      perdidas++;
+      atualizarPontuacao();
+      if (perdidas >= 5) {
+        mostrarFrase("Lembre-se: persistência é a chave. Você consegue!");
+        estouroTotal = 0;
+        perdidas = 0;
+        nivel = 1;
+        velocidadeBonus = 0;
+        atualizarPontuacao();
+      }
+    }
+
+    function mostrarFrase(texto) {
+      const div = document.getElementById("motivacao");
+      div.textContent = texto;
+      div.style.opacity = 1;
+      setTimeout(() => {
+        div.style.opacity = 0.4;
+      }, 4000);
+    }
+
+    function iniciarSomDeFundo() {
+      const musica = document.getElementById("musicaFundo");
+      if (musica.paused) {
+        musica.volume = 0.2;
+        musica.play().catch(() => {});
+      }
+    }
+
+    canvas.addEventListener("click", (e) => {
+      iniciarSomDeFundo();
+      estourar(e.clientX, e.clientY);
+    });
+
+    canvas.addEventListener("touchstart", (e) => {
+      iniciarSomDeFundo();
+      const touch = e.touches[0];
+      estourar(touch.clientX, touch.clientY);
+    });
+
+    function loop() {
+      if (Math.random() < 0.05 + nivel * 0.002) criarBolha();
+      desenharBolhas();
+      requestAnimationFrame(loop);
+    }
+
+    loop();
+    mostrarFrase("Toque nas bolhas para estourar!");
+
+    const toggle = document.getElementById("modoToggle");
+    toggle.addEventListener("click", () => {
+      document.body.classList.toggle("dark-mode");
+      toggle.textContent = document.body.classList.contains("dark-mode") ? "Desativar Modo Escuro" : "Ativar Modo Escuro";
+    });
+
+    window.addEventListener("resize", ajustarCanvas);
+  </script>
 </body>
 </html>
