@@ -1,9 +1,23 @@
 {
-  "name": "Zen Bolhas",
-  "short_name": "BolhasZen",
-  "start_url": "index.html",
-  "display": "standalone",
-  "background_color": "#a0e0ff",
-  "theme_color": "#a0e0ff",
-  "icons": []
-}
+    "name": "Zen Bolhas",
+    "short_name": "ZenBolhas",
+    "start_url": ".",
+    "display": "standalone",
+    "background_color": "#a0e0ff",
+    "theme_color": "#a0e0ff",
+    "orientation": "portrait",
+    "description": "Um jogo relaxante para estourar bolhas e aliviar o estresse.",
+    "icons": [
+      {
+        "src": "./imagens/caf48b82-325e-4d33-9a0b-6c14bd442278.png",
+        "sizes": "192x192",
+        "type": "image/png"
+      },
+      {
+        "src": "./imagens/Logo Zen Bolhas com Bexigas.ico",
+        "sizes": "512x512",
+        "type": "image/icon"
+      }
+    ]
+  }
+  
